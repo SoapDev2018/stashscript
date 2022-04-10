@@ -1,0 +1,5 @@
+Pipfile.lock
+*.db
+*.pickle
+config.env
+credentials.json

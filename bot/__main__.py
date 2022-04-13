@@ -21,6 +21,7 @@ from .helpers import db_ops, streak_db_ops
 from .modules import invite, stats, updates
 from .modules.streaks import get_xp, reset_daily_xp, leaderboards
 from .modules.invite import bl_invite, unbl_invite
+from .modules.profile import profile, profile_btn
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -205,8 +206,13 @@ def status(update: Update, context: CallbackContext) -> None:
             chat.id, 'This command cannot be used in group/supergroup. Please DM me for details!', reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
     elif chat.type == 'private':
         if not db_ops.is_donator(chat.id):
-            context.bot.send_message(chat.id, f'Hello {chat.full_name}, you are not authorized to use this command!',
-                                     reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
+            user_details = streak_db_ops.get_details(chat.id)
+            if user_details is None:
+                update.message.reply_text(
+                    '<b>No data found!</b>', reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
+            else:
+                update.message.reply_text(
+                    f'<b>You\'re not a donator!</b>\n\n<b>════「 Streak Details: 」════</b>\n<b>•XP:</b> {user_details[1]}\n<b>•Streak:</b> {user_details[2]} Days\n<b>•User Level:</b> Level {user_details[6]}', reply_to_message_id=msg.message_id, allow_sending_without_reply=True, parse_mode=ParseMode.HTML)
         else:
             donator_details = db_ops.get_donator_details(chat.id)
             donator_email = donator_details[2]
@@ -410,6 +416,10 @@ def main():
         ['blacklist', 'deny'], bl_invite, filters=Filters.chat(generic_ops.get_auth_chat())))
     dispatcher.add_handler(CommandHandler(
         'unblacklist', unbl_invite, filters=Filters.chat(generic_ops.get_auth_chat())))
+    dispatcher.add_handler(CommandHandler(
+        'profile', profile, filters=Filters.chat_type.private))
+    dispatcher.add_handler(CallbackQueryHandler(
+        profile_btn, pattern=r'user\_[mp][a-z]{3,6}\_[op][a-z]{1,2}'))
     j = dispatcher.job_queue
     j.run_repeating(reset_daily_xp, interval=300, first=6)
 

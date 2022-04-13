@@ -1,12 +1,11 @@
 from datetime import datetime
-from tkinter.tix import Tree
 import pytz
 
 from telegram import ParseMode, Update
 from telegram.ext import CallbackContext
 from telegram.utils.helpers import mention_html
 
-from bot import OWNER_ID
+from bot import OWNER_ID, BOT_LOG_CHANNEL_ID
 from bot.helpers import streak_db_ops as db_ops
 
 
@@ -16,6 +15,15 @@ def get_xp(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
     t = datetime.now().astimezone(pytz.timezone('Asia/Kolkata'))
     t = datetime.date(t)
+    user_details = db_ops.get_details(user.id)
+    if user_details is None:
+        db_ops.create_user(user.id, t.strftime('%m/%d/%Y'), user.full_name)
+        user_details = db_ops.get_details(user.id)
+    if user_details[-3] is None:
+        db_ops.set_user_full_name(user.id, user.full_name)
+    else:
+        if user_details[-3] != user.full_name:
+            db_ops.set_user_full_name(user.id, user.full_name)
     if msg.via_bot:
         return
     else:
@@ -30,10 +38,6 @@ def get_xp(update: Update, context: CallbackContext) -> None:
                 if xp >= 10:
                     xp = 10
                     break
-            user_details = db_ops.get_details(user.id)
-            if user_details is None:
-                db_ops.create_user(user.id, t.strftime('%m/%d/%Y'))
-                user_details = db_ops.get_details(user.id)
             date_diff = (
                 t - datetime.date(datetime.strptime(user_details[7], '%m/%d/%Y'))).days
             streak_broken = False
@@ -82,9 +86,12 @@ def get_xp(update: Update, context: CallbackContext) -> None:
                 if extra_xp > 0:
                     _msg += f'\n{mention_html(user.id, user.full_name)}, you were granted <b>{extra_xp}</b> XP for your daily streak!\n'
                     _msg += f'You now have a <u>{int(user_details[2])} day streak</u>!'
-            if len(_msg) > 0:
+            if len(_msg.strip()) > 0:
+                if user_details[-1] == 'Public':
+                    context.bot.send_message(
+                        chat.id, _msg.strip(), parse_mode=ParseMode.HTML)
                 context.bot.send_message(
-                    chat.id, _msg.strip(), parse_mode=ParseMode.HTML)
+                    BOT_LOG_CHANNEL_ID, _msg.strip(), parse_mode=ParseMode.HTML)
 
 
 def reset_daily_xp(context: CallbackContext) -> None:
@@ -121,7 +128,10 @@ def leaderboards(update: Update, context: CallbackContext) -> None:
             if len(data) > 0:
                 _msg = "<b>Top 5 scorers by level:</b>\n\n"
                 for d in data:
-                    _msg += f'{mention_html(d[0], str(d[0]))}: <b>Level {d[6]}</b>\n'
+                    if d[-2] == 'Off':
+                        _msg += f'{d[-3]} [User ID: <code>{d[0]}</code>]: <b>Level {d[6]}</b>\n'
+                    elif d[-2] == 'On':
+                        _msg += f'{mention_html(d[0], str(d[-3]))}: <b>Level {d[6]}</b>\n'
             else:
                 _msg = "<b>No data found in database!</b>"
         else:
@@ -131,7 +141,10 @@ def leaderboards(update: Update, context: CallbackContext) -> None:
         if len(data) > 0:
             _msg = "<b>Top 5 scorers by XP earned:</b>\n\n"
             for d in data:
-                _msg += f'{mention_html(d[0], str(d[0]))}: <b>{d[1]} XP</b>\n'
+                if d[-2] == 'Off':
+                    _msg += f'{d[-3]} [User ID: <code>{d[0]}</code>]: <b>{d[1]} XP</b>\n'
+                elif d[-2] == 'On':
+                    _msg += f'{mention_html(d[0], str(d[-3]))}: <b>{d[1]} XP</b>\n'
         else:
             _msg = "<b>No data found in database!</b>"
     context.bot.send_message(chat.id, _msg, parse_mode=ParseMode.HTML,

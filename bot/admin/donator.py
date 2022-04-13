@@ -498,7 +498,7 @@ def button(update: Update, context: CallbackContext) -> None:
                                        _donation_date, _donation_date_expiry, donator_type, donation_amt)
         t = datetime.now().astimezone(pytz.timezone('Asia/Kolkata'))
         t = datetime.date(t)
-        streak_db_ops.create_user(_telegram_id, t.strftime('%m/%d/%Y'))
+        streak_db_ops.create_user(_telegram_id, t.strftime('%m/%d/%Y'), None)
         if rowid > 0:
             context.bot.edit_message_text(
                 'Data insertion successful!', chat_id=chat.id, message_id=msg_obj.message_id)

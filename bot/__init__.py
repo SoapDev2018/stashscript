@@ -19,6 +19,7 @@ try:
     IV_GROUP_ID = get_config('IV_GROUP_ID')
     STREAK_DB_FILENAME = get_config('STREAK_DB_FILENAME')
     OWNER_ID = get_config('OWNER_ID')
+    BOT_LOG_CHANNEL_ID = get_config('BOT_LOG_CHANNEL_ID')
 except KeyError as e:
     print('One or more required env variables are missing, exiting...')
     exit(1)
@@ -57,6 +58,12 @@ try:
     OWNER_ID = int(OWNER_ID)
 except ValueError as e:
     print('OWNER_ID must be an integer')
+    exit(1)
+
+try:
+    BOT_LOG_CHANNEL_ID = int(BOT_LOG_CHANNEL_ID)
+except ValueError:
+    print('BOT_LOG_CHANNEL_ID must be an integer')
     exit(1)
 
 AUTH_CHATS = [DONATORS_GROUP_ID] + [CURATORS_GROUP_ID] + [-1001668132824]

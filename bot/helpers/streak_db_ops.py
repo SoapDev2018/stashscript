@@ -51,7 +51,7 @@ def get_leaderboard() -> list:
     conn = connect_db()
     cursor_obj = conn.cursor()
     d = cursor_obj.execute(
-        '''SELECT * FROM xp_points WHERE xp > 0 ORDER BY xp DESC LIMIT 5;''').fetchall()
+        '''SELECT * FROM xp_points WHERE xp > 0 AND telegram_id NOT IN (411860733, 846544389) ORDER BY xp DESC LIMIT 5;''').fetchall()
     conn.close()
     return d
 
@@ -60,7 +60,7 @@ def get_lvl_leaderboard() -> list:
     conn = connect_db()
     cursor_obj = conn.cursor()
     d = cursor_obj.execute(
-        '''SELECT * FROM xp_points WHERE user_level > 0 ORDER BY user_level DESC LIMIT 5;''').fetchall()
+        '''SELECT * FROM xp_points WHERE user_level > 0 AND telegram_id NOT IN (411860733, 846544389) ORDER BY user_level DESC, xp DESC LIMIT 5;''').fetchall()
     conn.close()
     return d
 

@@ -306,6 +306,7 @@ def bl_invite(update: Update, context: CallbackContext) -> None:
                 _msg = f'Donation requests will be denied from Telegram ID {telegram_id}'
             context.bot.send_message(chat.id, _msg,
                                      reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
+            tg_ops.post_log(update, context, _msg)
         except ValueError:
             context.bot.send_message(chat.id, 'That is not a valid Telegram ID',
                                      reply_to_message_id=msg.message_id, allow_sending_without_reply=True)

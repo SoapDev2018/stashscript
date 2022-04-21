@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Tuple
 
 import pytz
-from bot.helpers import streak_db_ops
+from bot.helpers import streak_db_ops, tg_ops
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext
 
@@ -60,8 +60,11 @@ def profile_btn(update: Update, _: CallbackContext) -> None:
         mention_type = data.split('_')[2]
         if mention_type == 'on':
             streak_db_ops.set_mention(user.id, 'On')
+            _log = f'User <code>{user.id}</code> has set their mentions to <b>On</b>'
         elif mention_type == 'off':
             streak_db_ops.set_mention(user.id, 'Off')
+            _log = f'User <code>{user.id}</code> has set their mentions to <b>Off</b>'
+        tg_ops.post_log(update, _, _log)
         user_details = streak_db_ops.get_details(user.id)
         button = button_builder(user_details)
         query.edit_message_text(
@@ -70,8 +73,11 @@ def profile_btn(update: Update, _: CallbackContext) -> None:
         profile_type = data.split('_')[2]
         if profile_type == 'pvt':
             streak_db_ops.set_profile_type(user.id, 'Private')
+            _log = f'User <code>{user.id}</code> has set their profile to <b>Private</b>'
         elif profile_type == 'pub':
             streak_db_ops.set_profile_type(user.id, 'Public')
+            _log = f'User <code>{user.id}</code> has set their profile to <b>Public</b>'
+        tg_ops.post_log(update, _, _log)
         user_details = streak_db_ops.get_details(user.id)
         button = button_builder(user_details)
         query.edit_message_text(

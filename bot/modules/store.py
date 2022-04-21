@@ -1,6 +1,6 @@
 from telegram import Update, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
-from bot.helpers import db_ops, streak_db_ops, trans_db_ops, generic_ops
+from bot.helpers import streak_db_ops, trans_db_ops, generic_ops, tg_ops
 from bot.helpers.tg_ops import restricted
 from telegram.utils.helpers import mention_html
 
@@ -66,6 +66,8 @@ def send(update: Update, context: CallbackContext) -> None:
     _msg = f'You are sending {amt_to_send} points to {member_details[-3]} [User ID: <code>{telegram_id}</code>]\nPress <b>Yes ✅</b> to confirm the transaction or <b>No ❌</b> to cancel the transaction'
     _msg += f'\nThe receiver will receive {amt_to_send - tax} points'
     _msg += f'\n\n<i>The system will take a tax of {tax} points</i>'
+    _log = f'A transaction of <b>{amt_to_send} points</b> was initiated by <code>{user.id}</code> to be sent to <code>{telegram_id}</code>\nThe system will levy a tax of <b>{tax} points</b>\nTransaction Hash: <code>{hash}</code>'
+    tg_ops.post_log(update, context, _log)
     update.message.reply_text(_msg, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(
         kboard), reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
 
@@ -84,6 +86,7 @@ def send_btn(update: Update, _: CallbackContext) -> None:
         trans_db_ops.del_transaction(transaction_hash)
         query.edit_message_text(
             '<b>Cancelled the transaction!</b>', parse_mode=ParseMode.HTML)
+        _log = f'A transaction of <b>{transaction_details[3]} points</b> from <code>{transaction_details[1]}</code> to <code>{transaction_details[2]}</code> was cancelled by <code>{transaction_details[1]}</code>'
     elif transaction_type == 'yes':
         trans_db_ops.confirm_transaction(transaction_hash)
         receiver_details = streak_db_ops.get_details(transaction_details[2])
@@ -95,6 +98,8 @@ def send_btn(update: Update, _: CallbackContext) -> None:
         trans_db_ops.add_bot_balance(tax)
         query.edit_message_text(
             f'Transferred {transaction_details[3] - tax} points to {mention_html(transaction_details[2], receiver_details[-3])} [User ID: <code>{transaction_details[2]}</code>]', parse_mode=ParseMode.HTML)
+        _log = f'A transaction of <b>{transaction_details[3]} points</b> from <code>{transaction_details[1]}</code> to <code>{transaction_details[2]}</code> was confirmed by <code>{transaction_details[1]}</code>\nThe system levied a tax of <b>{tax} points</b>'
+    tg_ops.post_log(update, _, _log)
 
 
 @restricted
@@ -115,6 +120,8 @@ def cancel_trans(update: Update, _: CallbackContext) -> None:
     trans_db_ops.del_transaction(transaction_hash)
     update.message.reply_text(f'<b>Cancelled transaction with hash</b> <code>{transaction_hash}</code>',
                               parse_mode=ParseMode.HTML, reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
+    _log = f'A transaction of <b>{transaction_details[3]} points</b> from <code>{transaction_details[1]}</code> to <code>{transaction_details[2]}</code> was cancelled by <b>Staff</b>'
+    tg_ops.post_log(update, _, _log)
 
 
 @restricted

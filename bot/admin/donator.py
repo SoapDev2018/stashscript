@@ -523,6 +523,8 @@ def button(update: Update, context: CallbackContext) -> None:
         if status == 'Success':
             context.bot.edit_message_text(
                 f'Added {donator_email} to group(s)', chat_id=chat.id, message_id=msg_obj.message_id)
+            _log = f'New donator added with ID: <code>{_telegram_id}</code>\nEmail: {donator_email}\nPayment Method: {_payment_method}\nDonation Date: {_donation_date}\nDonation Expiry: {_donation_date_expiry}\nAmount: {donation_amt}'
+            tg_ops.post_log(update, context, _log)
         else:
             context.bot.edit_message_text(
                 f'Error, could not add {donator_email} to group(s), due to {status}', chat_id=chat.id, message_id=msg_obj.message_id)

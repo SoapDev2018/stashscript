@@ -1,9 +1,11 @@
 from functools import wraps
 
+from bot import BOT_LOG_CHANNEL_ID
 from bot.helpers import db_ops
 from bot.helpers import generic_ops
-from telegram import Update
+from telegram import Update, ParseMode
 from telegram.ext.callbackcontext import CallbackContext
+
 
 def check_chat(update: Update, context: CallbackContext) -> bool:
     chat = update.effective_chat
@@ -28,3 +30,8 @@ def restricted(func):
             return
         return func(update, context, *args, **kwargs)
     return wrapped
+
+
+def post_log(_: Update, context: CallbackContext, log: str) -> None:
+    context.bot.send_message(BOT_LOG_CHANNEL_ID, log,
+                             parse_mode=ParseMode.HTML)

@@ -356,6 +356,8 @@ def email_chg_btn(update: Update, context: CallbackContext) -> None:
     context.bot.send_chat_action(chat.id, 'typing')
     return_msgs = group_ops.change_donator_email(
         donator_old_email, context.user_data['new_donator_email'], donator_type, donator_has_hw_access, donator_has_curator_access)
+    _log = f'User <code>{chat.id}</code> changed email from {donator_old_email} to {context.user_data["new_donator_email"]}'
+    tg_ops.post_log(update, context, _log)
     if len(return_msgs) > 0:
         query.edit_message_text('Issues occurred ⚠️: \n')
     flag = False

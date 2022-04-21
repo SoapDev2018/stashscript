@@ -11,7 +11,7 @@ def get_auth_chat() -> list:
     return AUTH_CHATS
 
 
-def generate_invite() -> str:
+def generate_hash() -> str:
     dt = datetime.now().astimezone(pytz.timezone(
-        'Asia/Kolkata')).strftime("%m/%d/%Y, %H:%M:%S")
+        'Asia/Kolkata')).strftime("%m/%d/%Y, %H:%M:%S:%f")
     return hashlib.sha224(dt.encode()).hexdigest()

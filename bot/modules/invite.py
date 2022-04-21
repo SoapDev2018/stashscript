@@ -94,7 +94,7 @@ def inv_code_btn_handler(update: Update, context: CallbackContext) -> None:
             m = context.bot.send_message(
                 chat.id, 'Generating an invite code now...')
             context.bot.send_chat_action(chat.id, 'typing')
-            invite_code = generic_ops.generate_invite()
+            invite_code = generic_ops.generate_hash()
             if not db_ops.is_staff(user.id):
                 invites_avail = db_ops.get_invites(user.id)
                 invites_avail -= 1

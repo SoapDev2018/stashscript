@@ -190,3 +190,12 @@ def set_profile_type(telegram_id: int, profile_type: str) -> None:
         '''UPDATE xp_points SET profile_type = ? WHERE telegram_id = ?''', (profile_type, telegram_id))
     conn.commit()
     conn.close()
+
+
+def send_points(sender_id: int, receiver_id: int, amount: int, tax: int) -> None:
+    sender_details = get_details(sender_id)
+    receiver_details = get_details(receiver_id)
+    sender_points = sender_details[3] - (amount + tax)
+    receiver_points = receiver_details[3] + amount
+    set_points(sender_id, sender_points)
+    set_points(receiver_id, receiver_points)

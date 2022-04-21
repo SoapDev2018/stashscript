@@ -20,6 +20,7 @@ try:
     STREAK_DB_FILENAME = get_config('STREAK_DB_FILENAME')
     OWNER_ID = get_config('OWNER_ID')
     BOT_LOG_CHANNEL_ID = get_config('BOT_LOG_CHANNEL_ID')
+    TRANSACTIONS_DB_FILENAME = get_config('TRANSACTIONS_DB_FILENAME')
 except KeyError as e:
     print('One or more required env variables are missing, exiting...')
     exit(1)

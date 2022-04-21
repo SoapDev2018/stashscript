@@ -13,15 +13,17 @@ from telegram.ext.filters import Filters
 from telegram.utils.helpers import mention_html
 
 from bot import (AUTH_CHATS, DB_FILENAME, DONATORS_GROUP_ID, IV_GROUP_ID,
-                 STREAK_DB_FILENAME, dispatcher, updater)
-from bot.helpers import group_ops, tg_ops, generic_ops
+                 STREAK_DB_FILENAME, TRANSACTIONS_DB_FILENAME, dispatcher,
+                 updater)
+from bot.helpers import generic_ops, group_ops, tg_ops
 
 from .admin import donator
-from .helpers import db_ops, streak_db_ops
+from .helpers import db_ops, streak_db_ops, trans_db_ops
 from .modules import invite, stats, updates
-from .modules.streaks import get_xp, reset_daily_xp, leaderboards
 from .modules.invite import bl_invite, unbl_invite
 from .modules.profile import profile, profile_btn
+from .modules.store import send, send_btn, cancel_trans, get_pending_trans
+from .modules.streaks import get_xp, leaderboards, reset_daily_xp
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -209,10 +211,10 @@ def status(update: Update, context: CallbackContext) -> None:
             user_details = streak_db_ops.get_details(chat.id)
             if user_details is None:
                 update.message.reply_text(
-                    '<b>No data found!</b>', reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
+                    '<b>No data found!</b>', reply_to_message_id=msg.message_id, allow_sending_without_reply=True, parse_mode=ParseMode.HTML)
             else:
                 update.message.reply_text(
-                    f'<b>You\'re not a donator!</b>\n\n<b>════「 Streak Details: 」════</b>\n<b>•XP:</b> {user_details[1]}\n<b>•Streak:</b> {user_details[2]} Days\n<b>•User Level:</b> Level {user_details[6]}', reply_to_message_id=msg.message_id, allow_sending_without_reply=True, parse_mode=ParseMode.HTML)
+                    f'<b>You\'re not a donator!</b>\n\n<b>════「 Streak Details: 」════</b>\n<b>•XP:</b> {user_details[1]}\n<b>•Streak:</b> {user_details[2]} Days\n<b>•User Level:</b> Level {user_details[6]}\n<b>•Points:</b> {user_details[3]}\n<b>•Daily XP:</b> {user_details[4]}', reply_to_message_id=msg.message_id, allow_sending_without_reply=True, parse_mode=ParseMode.HTML)
         else:
             donator_details = db_ops.get_donator_details(chat.id)
             donator_email = donator_details[2]
@@ -246,18 +248,46 @@ def status(update: Update, context: CallbackContext) -> None:
             if donator_has_curator_access:
                 text += '\n<b>•Curator ✏️ Access:</b> Yes'
             if donator_streak_details is not None:
-                text += f'\n\n<b>════「 Streak Details: 」════</b>\n<b>•XP:</b> {donator_streak_details[1]}\n<b>•Streak:</b> {donator_streak_details[2]} Days\n<b>•User Level:</b> Level {donator_streak_details[6]}'
+                text += f'\n\n<b>════「 Streak Details: 」════</b>\n<b>•XP:</b> {donator_streak_details[1]}\n<b>•Streak:</b> {donator_streak_details[2]} Days\n<b>•User Level:</b> Level {donator_streak_details[6]}\n<b>•Points:</b> {donator_streak_details[3]}\n<b>•Daily XP:</b> {donator_streak_details[4]}'
             inline_kboard = [
                 [
                     InlineKeyboardButton(
                         'Change My Email 📧', callback_data=f'chan_em_{chat.id}')
+                ],
+                [
+                    InlineKeyboardButton(
+                        'View Transactions 📈', callback_data='view_trans')
                 ]
             ]
             context.bot.send_message(chat.id, text,
                                      parse_mode=ParseMode.HTML, reply_to_message_id=msg.message_id, allow_sending_without_reply=True, reply_markup=InlineKeyboardMarkup(inline_kboard))
 
 
-def status_callback_btn(update: Update, context: CallbackContext) -> None:
+def status_trans_callback_btn(update: Update, _: CallbackContext) -> None:
+    query = update.callback_query
+    user = query.from_user
+    query.answer('Request received')
+    _msg = ""
+    sent_transactions = trans_db_ops.get_initiated_transactions(user.id)
+    if len(sent_transactions) > 0:
+        _msg = '<b>5 Latest transactions initated by you:</b>\n\n'
+        for t in sent_transactions:
+            _msg += f'<b>To:</b> <code>{t[2]}</code>\n<b>Amount:</b> <code>{t[3]}</code>\n<b>Timestamp:</b> {datetime.fromtimestamp(int(t[5]) / 1000000).strftime("%m/%d/%Y, %H:%M:%S")}\n\n'
+
+    received_transactions = trans_db_ops.get_received_transactions(user.id)
+    if len(received_transactions) > 0:
+        _msg = '\n<b>5 Latest transactions where you received points:</b>\n\n'
+        for t in received_transactions:
+            _msg += f'<b>From:</b> <code>{t[1]}</code>\n<b>Amount:</b> <code>{t[3]}</code>\n<b>Timestamp:</b> {datetime.fromtimestamp(int(t[5]) / 1000000).strftime("%m/%d/%Y, %H:%M:%S")}\n\n'
+
+    if len(_msg) > 0:
+        query.edit_message_text(_msg, parse_mode=ParseMode.HTML)
+        return
+    query.edit_message_text(
+        '<b>No transactions found!</b>', parse_mode=ParseMode.HTML)
+
+
+def status_callback_btn(update: Update, _: CallbackContext) -> None:
     query = update.callback_query
     chat = update.effective_chat
     callback_data = query.data
@@ -407,6 +437,8 @@ def main():
         db_ops.seed_db()
     if not os.path.exists(STREAK_DB_FILENAME):
         streak_db_ops.seed_db()
+    if not os.path.exists(TRANSACTIONS_DB_FILENAME):
+        trans_db_ops.seed_db()
 
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command & Filters.chat(
         AUTH_CHATS) & ~Filters.forwarded & ~Filters.update.edited_message, get_xp))
@@ -420,6 +452,16 @@ def main():
         'profile', profile, filters=Filters.chat_type.private))
     dispatcher.add_handler(CallbackQueryHandler(
         profile_btn, pattern=r'user\_[mp][a-z]{3,6}\_[op][a-z]{1,2}'))
+    dispatcher.add_handler(CommandHandler(
+        'send', send, filters=Filters.chat(AUTH_CHATS) | Filters.chat_type.private))
+    dispatcher.add_handler(CallbackQueryHandler(
+        send_btn, pattern=r'tr_[ny][eo]s?_[A-Fa-f0-9]{56}'))
+    dispatcher.add_handler(CommandHandler(
+        'ctrans', cancel_trans, filters=Filters.chat_type.private))
+    dispatcher.add_handler(CommandHandler(
+        'pending', get_pending_trans, filters=Filters.chat_type.private))
+    dispatcher.add_handler(CallbackQueryHandler(
+        status_trans_callback_btn, pattern=r'view_trans'))
     j = dispatcher.job_queue
     j.run_repeating(reset_daily_xp, interval=300, first=6)
 

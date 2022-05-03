@@ -82,7 +82,7 @@ def get_xp(update: Update, context: CallbackContext) -> None:
             _log = ""
             if level_upgrade:
                 _msg += f'Congratulations, {mention_html(user.id, user.full_name)}, you reached <b>level {1 + current_lvl}!</b>\nYou also earned <b>{points}</b> points!\nYou now have <b>{xp}</b> XP!'
-                _log += f'{mention_html(user.id, user.full_name)} [User ID: <code>{user.id}]</code> reached <b>level {1 + current_lvl}</b>\nThey also earned <b>{points}</b> points\nThey now have <b>{xp}</b> XP'
+                _log += f'{mention_html(user.id, user.full_name)} [User ID: <code>{user.id}</code>] reached <b>level {1 + current_lvl}</b>\nThey also earned <b>{points}</b> points\nThey now have <b>{xp}</b> XP'
             if streak_broken:
                 _msg += f'\nOops, {mention_html(user.id, user.full_name)}, your daily streak was <b>reset</b>!\n'
                 _log += f'\n{mention_html(user.id, user.full_name)} daily streak was <b>reset</b>\n'
@@ -90,7 +90,7 @@ def get_xp(update: Update, context: CallbackContext) -> None:
                 if extra_xp > 0:
                     _msg += f'\n{mention_html(user.id, user.full_name)}, you were granted <b>{extra_xp}</b> XP for your daily streak!\n'
                     _msg += f'You now have a <u>{int(user_details[2])} day streak</u>!'
-                    _log += f'\n{mention_html(user.id, user.full_name)} was granted <b>{extra_xp}</b> XP for your daily streak\nThey now have a <u>{int(user_details[2])} day streak</u>'
+                    _log += f'\n{mention_html(user.id, user.full_name)} [User ID: <code>{user.id}</code>] was granted <b>{extra_xp}</b> XP for their daily streak\nThey now have a <u>{int(user_details[2])} day streak</u>'
             if len(_msg.strip()) > 0:
                 if user_details[-1] == 'Public':
                     context.bot.send_message(

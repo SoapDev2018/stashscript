@@ -13,7 +13,7 @@ def send(update: Update, context: CallbackContext) -> None:
         update.message.reply_text('You need to provide a user ID and amount to send.\nCorrect usage: <code>/send ID amount</code>',
                                   parse_mode=ParseMode.HTML, reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
         return
-    pending = trans_db_ops.get_pending_transaction(chat.id)
+    pending = trans_db_ops.get_pending_transaction(user.id)
     if pending is not None:
         update.message.reply_text('<b>You already have a pending transaction, please confirm/deny it before trying another transaction</b>',
                                   parse_mode=ParseMode.HTML, reply_to_message_id=msg.message_id, allow_sending_without_reply=True)

@@ -24,6 +24,7 @@ from .modules.invite import bl_invite, unbl_invite
 from .modules.profile import profile, profile_btn
 from .modules.store import send, send_btn, cancel_trans, get_pending_trans
 from .modules.streaks import get_xp, leaderboards, reset_daily_xp
+from .admin.dbwork import dbdump
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -464,6 +465,8 @@ def main():
         'pending', get_pending_trans, filters=Filters.chat_type.private))
     dispatcher.add_handler(CallbackQueryHandler(
         status_trans_callback_btn, pattern=r'view_trans'))
+    dispatcher.add_handler(CommandHandler('dump', dbdump, filters=Filters.chat(
+        generic_ops.get_auth_chat()) | Filters.chat_type.private))
     j = dispatcher.job_queue
     j.run_repeating(reset_daily_xp, interval=300, first=6)
 

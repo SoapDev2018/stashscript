@@ -1,5 +1,6 @@
 Pipfile.lock
 *.db
+*.xlsx
 *.pickle
 config.env
 credentials.json

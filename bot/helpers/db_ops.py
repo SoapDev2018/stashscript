@@ -109,6 +109,14 @@ def get_donator_details(telegram_id: int) -> tuple:
     return (None,)
 
 
+def get_all_donator_details() -> list:
+    conn = connect_db()
+    cursor_obj = conn.cursor()
+    data = cursor_obj.execute('''SELECT * FROM members;''').fetchall()
+    conn.close()
+    return data
+
+
 def get_donation_details() -> list:
     conn = connect_db()
     cursor_obj = conn.cursor()

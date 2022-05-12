@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from turtle import update
 
 import pytz
 from bot import dispatcher
@@ -12,8 +13,8 @@ from telegram.ext import (CallbackContext, CallbackQueryHandler,
 from telegram.parsemode import ParseMode
 from telegram.utils.helpers import mention_html
 
-ADMIN_OPTION, ADD_TELEGRAM_ID, ADD_EMAIL, ADD_PAYMENT_AMOUNT, ADD_PAYMENT_METHOD, MORE_OPTION, STAFF_OPTION, VIEW_DETAILS, REMOVE_DONATOR, APPOINT_ADMIN, DISMISS_ADMIN, DONATOR_FUNCTIONS, DONATOR_FUNC_CHOOSE, LTS_PAYMENT_AMT, LTS_PAYMENT_METHOD = range(
-    15)
+ADMIN_OPTION, ADD_TELEGRAM_ID, ADD_EMAIL, ADD_PAYMENT_AMOUNT, ADD_PAYMENT_METHOD, MORE_OPTION, STAFF_OPTION, VIEW_DETAILS, REMOVE_DONATOR, APPOINT_ADMIN, DISMISS_ADMIN, DONATOR_FUNCTIONS, DONATOR_FUNC_CHOOSE, LTS_PAYMENT_AMT, LTS_PAYMENT_METHOD, ADMIN_PRIVILEGES = range(
+    16)
 
 
 def form_staff_keyboard(reply_keyboard: list, telegram_id: int) -> list:
@@ -67,6 +68,7 @@ def form_extra_staff_keyboard(telegram_id: int) -> list:
         reply_keyboard.append('Appoint Admin')
     if 'edit_staff' in staff_privileges:
         reply_keyboard.append('Dismiss Admin')
+        reply_keyboard.append('Change Admin Privileges')
     return reply_keyboard
 
 
@@ -133,6 +135,148 @@ def staff_options(update: Update, context: CallbackContext) -> None:
         context.bot.send_message(chat.id, 'Send me Telegram ID of staff to dismiss', reply_markup=ReplyKeyboardRemove(
         ), reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
         return DISMISS_ADMIN
+    elif _option == 'Change Admin Privileges':
+        context.bot.send_message(chat.id, 'Send me Telegram ID of a staff to change their privileges',
+                                 reply_markup=ReplyKeyboardRemove(), reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
+        return ADMIN_PRIVILEGES
+
+
+def get_actual_privileges() -> dict:
+    return {
+        'add_donator': {
+            'name': 'Add Donator Privilege',
+            'cb_data': 'adp',
+            'status': False,
+        },
+        'edit_donator': {
+            'name': 'Edit Donator Privilege',
+            'cb_data': 'edp',
+            'status': False,
+        },
+        'add_email': {
+            'name': 'Add Email Privilege',
+            'cb_data': 'aep',
+            'status': False,
+        },
+        'edit_email': {
+            'name': 'Edit Email Privilege',
+            'cb_data': 'eep',
+            'status': False,
+        },
+        'add_staff': {
+            'name': 'Add Staff Privilege',
+            'cb_data': 'asp',
+            'status': False,
+        },
+        'edit_staff': {
+            'name': 'Edit Staff Privilege',
+            'cb_data': 'esp',
+            'status': False,
+        },
+        'remove_donator': {
+            'name': 'Remove Donator Privilege',
+            'cb_data': 'rdp',
+            'status': False,
+        },
+        'dump_db': {
+            'name': 'Dump DB Privilege',
+            'cb_data': 'ddp',
+            'status': False,
+        }
+    }
+
+
+def staff_privilege_keyboard(staff_privileges: list) -> list:
+    actual_privileges = get_actual_privileges()
+    for key in actual_privileges.keys():
+        if key in staff_privileges:
+            actual_privileges[key]['status'] = True
+    inline_kboard = list()
+    tmp_kboard = list()
+    for key in actual_privileges:
+        if actual_privileges[key]['status']:
+            val = InlineKeyboardButton(
+                f'{actual_privileges[key]["name"]} ✅', callback_data=f'priv_{actual_privileges[key]["cb_data"]}_off')
+        else:
+            val = InlineKeyboardButton(
+                f'{actual_privileges[key]["name"]} ❌', callback_data=f'priv_{actual_privileges[key]["cb_data"]}_on')
+        if len(tmp_kboard) < 2:
+            tmp_kboard.append(val)
+        else:
+            inline_kboard.append(tmp_kboard)
+            tmp_kboard = list()
+            tmp_kboard.append(val)
+
+    if len(tmp_kboard) > 0:
+        inline_kboard.append(tmp_kboard)
+    inline_kboard.append([InlineKeyboardButton(
+        'Confirm ✅', callback_data='priv_conf'), InlineKeyboardButton('Cancel ❌', callback_data='priv_canc')])
+    return inline_kboard
+
+
+def staff_privilege_button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    callback_data = query.data
+    query.answer('Please wait!')
+    actual_privileges = get_actual_privileges()
+    callback_type = callback_data.split('_')[1]
+    act_telegram_id: int = context.user_data['act_telegram_id']
+    if callback_type == 'conf':
+        staff_privileges = db_ops.get_staff_privileges(act_telegram_id)
+        act_staff_privileges: list = context.user_data['act_staff_privileges']
+        if sorted(staff_privileges) == sorted(act_staff_privileges):
+            query.edit_message_text(
+                '<b>Privileges have not changed!</b>', parse_mode=ParseMode.HTML)
+        else:
+            act_staff_privileges
+            act_staff_privileges = ",".join(sorted(act_staff_privileges))
+            act_staff_privileges += ","
+            db_ops.set_staff_privileges(act_telegram_id, act_staff_privileges)
+            query.edit_message_text(
+                f'<b>Edited privileges of</b> <code>{act_telegram_id}</code><b>!</b>', parse_mode=ParseMode.HTML)
+            _log = f'<code>{query.from_user.id}</code> changed privileges of <code>{act_telegram_id}</code> from <code>{",".join(sorted(staff_privileges))}</code> to <code>{act_staff_privileges[:-1]}</code>'
+            tg_ops.post_log(update, context, _log)
+    elif callback_type == 'canc':
+        query.edit_message_text(
+            '<b>Privileges have not changed!</b>', parse_mode=ParseMode.HTML)
+    else:
+        callback_bool_type = callback_data.split('_')[2]
+        for key, value in actual_privileges.items():
+            if value['cb_data'] == callback_type:
+                privilege = key
+                break
+        act_staff_privileges: list = context.user_data['act_staff_privileges']
+        if callback_bool_type == 'on':
+            act_staff_privileges.append(privilege)
+        elif callback_bool_type == 'off':
+            act_staff_privileges.remove(privilege)
+        context.user_data['act_staff_privileges'] = act_staff_privileges
+        inline_kboard = staff_privilege_keyboard(act_staff_privileges)
+        query.edit_message_text(
+            f'<b>Change privileges of</b> <code>{act_telegram_id}</code> <b>by tapping on the buttons below</b>\n\n<u>Tap Confirm to confirm your changes!</u>', parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(inline_kboard))
+
+
+def admin_privileges(update: Update, context: CallbackContext) -> None:
+    _msg = update.effective_message
+    msg = update.message
+
+    try:
+        telegram_id = int(update.message.text)
+        if not db_ops.is_staff(telegram_id):
+            msg.reply_text(f'{msg.text} <b>is not a staff</b>', parse_mode=ParseMode.HTML,
+                           reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
+            return ConversationHandler.END
+        staff_privileges = db_ops.get_staff_privileges(telegram_id)
+        context.user_data['act_staff_privileges'] = staff_privileges
+        context.user_data['act_telegram_id'] = telegram_id
+        inline_kboard = staff_privilege_keyboard(staff_privileges)
+        msg.reply_text(f'<b>Change privileges of</b> <code>{msg.text}</code> <b>by tapping on the buttons below</b>\n\n<u>Tap Confirm to confirm your changes!</u>', parse_mode=ParseMode.HTML, reply_to_message_id=_msg.message_id,
+                       reply_markup=InlineKeyboardMarkup(inline_kboard), allow_sending_without_reply=True)
+        return ConversationHandler.END
+    except ValueError as e:
+        msg.reply_text(f'<b>{msg.text} is not a valid Telegram ID</b>', parse_mode=ParseMode.HTML,
+                       reply_to_message_id=_msg.message_id, allow_sending_without_reply=True)
+        return ConversationHandler.END
 
 
 def donator_functions(update: Update, context: CallbackContext) -> None:
@@ -557,6 +701,7 @@ conv_handler = ConversationHandler(
         DONATOR_FUNC_CHOOSE: [MessageHandler(Filters.text & ~Filters.command, donator_func_choose)],
         LTS_PAYMENT_AMT: [MessageHandler(Filters.text & ~Filters.command, lts_payment_amt)],
         LTS_PAYMENT_METHOD: [MessageHandler(Filters.text & ~Filters.command, lts_payment_method)],
+        ADMIN_PRIVILEGES: [MessageHandler(Filters.text & ~Filters.command, admin_privileges)],
     },
     fallbacks=[CommandHandler('cancel', cancel)]
 )
@@ -569,3 +714,5 @@ dispatcher.add_handler(CallbackQueryHandler(
     donator_nsfw_access_btn, pattern=r'd\w{6}\_n\w{3}\_[yn]\w{1,2}\_\d+'))
 dispatcher.add_handler(CallbackQueryHandler(
     donator_lts_access_btn, pattern=r'd\w{6}\_l\w{2}\_[yn]\w{1,2}\_\d+'))
+dispatcher.add_handler(CallbackQueryHandler(
+    staff_privilege_button, pattern=r'priv_([aerd][des]p_o(n|f{2})|conf|canc)'))

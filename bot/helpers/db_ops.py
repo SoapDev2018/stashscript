@@ -203,7 +203,17 @@ def get_staff_privileges(telegram_id: int) -> list:
     cursor_obj = conn.cursor()
     row = cursor_obj.execute(
         'SELECT privileges FROM members WHERE telegram_id = ?', (telegram_id,)).fetchone()[0]
+    conn.close()
     return row.split(',')[:-1]
+
+
+def set_staff_privileges(telegram_id: int, privileges: str) -> None:
+    conn = connect_db()
+    cursor_obj = conn.cursor()
+    cursor_obj.execute(
+        '''UPDATE members SET privileges = ? WHERE telegram_id = ?''', (privileges, telegram_id))
+    conn.commit()
+    conn.close()
 
 
 def add_new_donator(telegram_id: int, email: str, payment_method: str, last_payment_date: str, access_until: str, donator_type: str, amt: int) -> int:

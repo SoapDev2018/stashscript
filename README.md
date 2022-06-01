@@ -1,8 +1,12 @@
+<h1 align="center">Stash Script Bot</h1>
 
-# Stash Script Bot
+<p align="center">The StashScript bot. I made this bot to explore all functionalities offered by the Telegram Bot API.
+This bot does not follow OOP Python principles, so, please do not depend on this for production use.
+You have been warned.</p>
 
-The StashScript bot. I made this bot to explore all functionalities offered by the Telegram Bot API.
-This bot does not follow OOP Python principles, so, please do not depend on this for production use. You have been warned.
+<p align="center">
+  <img src="https://img.shields.io/github/pipenv/locked/python-version/SoapDev2018/stashscript?style=for-the-badge" alt="Python - Version">
+</p>
 
 
 ## Authors

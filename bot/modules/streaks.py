@@ -81,8 +81,8 @@ def get_xp(update: Update, context: CallbackContext) -> None:
             _msg = ""
             _log = ""
             if level_upgrade:
-                _msg += f'Congratulations, {mention_html(user.id, user.full_name)}, you reached <b>level {1 + current_lvl}!</b>\nYou also earned <b>{points}</b> points!\nYou now have <b>{xp}</b> XP!'
-                _log += f'{mention_html(user.id, user.full_name)} [User ID: <code>{user.id}</code>] reached <b>level {1 + current_lvl}</b>\nThey also earned <b>{points}</b> points\nThey now have <b>{xp}</b> XP'
+                _msg += f'Congratulations, {mention_html(user.id, user.full_name)}, you reached <b>level {1 + current_lvl}!</b>\nYou now have <b>{xp}</b> XP <i>and</i> <b>{points}</b> points!'
+                _log += f'{mention_html(user.id, user.full_name)} [User ID: <code>{user.id}</code>] reached <b>level {1 + current_lvl}</b>\nThey now have <b>{points}</b> points\nThey now have <b>{xp}</b> XP'
             if streak_broken:
                 _msg += f'\nOops, {mention_html(user.id, user.full_name)}, your daily streak was <b>reset</b>!\n'
                 _log += f'\n{mention_html(user.id, user.full_name)} [User ID: <code>{user.id}</code>] daily streak was <b>reset</b>\n'

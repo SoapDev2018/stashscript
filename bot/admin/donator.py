@@ -642,7 +642,10 @@ def button(update: Update, context: CallbackContext) -> None:
                                        _donation_date, _donation_date_expiry, donator_type, donation_amt)
         t = datetime.now().astimezone(pytz.timezone('Asia/Kolkata'))
         t = datetime.date(t)
-        streak_db_ops.create_user(_telegram_id, t.strftime('%m/%d/%Y'), None)
+        
+        # Fixes the bug where duplicate entries are made in Streaks DB
+        if streak_db_ops.get_details(_telegram_id) is None:
+            streak_db_ops.create_user(_telegram_id, t.strftime('%m/%d/%Y'), None)
         if rowid > 0:
             context.bot.edit_message_text(
                 'Data insertion successful!', chat_id=chat.id, message_id=msg_obj.message_id)
@@ -672,6 +675,15 @@ def button(update: Update, context: CallbackContext) -> None:
         else:
             context.bot.edit_message_text(
                 f'Error, could not add {donator_email} to group(s), due to {status}', chat_id=chat.id, message_id=msg_obj.message_id)
+            # Remove the added donator data
+            db_ops.remove_donator(_telegram_id)
+            db_ops.del_payment(donation_amt)
+            # Delete user from Streaks DB if their XP is 0
+            if streak_db_ops.get_details(_telegram_id)[1] == 0:
+                streak_db_ops.delete_user(_telegram_id)
+            context.bot.send_message(chat.id, 'Deleted donator data & removed payment due to failure in inserting email to googlegroup.')
+            _log = f'#ERROR ❌\n<b>Donator addition failure</b>.\nID: <code>{_telegram_id}</code>\nEmail: {donator_email}\nPayment Method: {_payment_method}\nDonation Date: {_donation_date}\nDonation Expiry: {_donation_date_expiry}\nAmount: {donation_amt}'
+            tg_ops.post_log(update, context, _log)
     elif callback_data == 'add_no':
         query.edit_message_text(f'{chat.full_name}, discarding all data now!')
 

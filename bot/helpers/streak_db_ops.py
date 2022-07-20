@@ -74,7 +74,6 @@ def create_user(telegram_id: int, time: str, user_full_name: Union[str, None]) -
         user_full_name = 'NoName'
     cursor_obj.execute(
         '''INSERT INTO xp_points VALUES (?,?,?,?,?,?,?,?,?,?,?)''', (telegram_id, 0, 0, 0, 0, 'No', 0, time, user_full_name, "Off", "Public"))
-    print(f'Created new user {telegram_id}')
     conn.commit()
     conn.close()
 
@@ -199,3 +198,12 @@ def send_points(sender_id: int, receiver_id: int, amount: int, tax: int) -> None
     receiver_points = receiver_details[3] + amount
     set_points(sender_id, sender_points)
     set_points(receiver_id, receiver_points)
+
+
+def delete_user(telegram_id: int) -> None:
+    conn = connect_db()
+    cursor_obj = conn.cursor()
+    cursor_obj.execute(
+        '''DELETE FROM xp_points WHERE telegram_id = ?''', (telegram_id, ))
+    conn.commit()
+    conn.close()

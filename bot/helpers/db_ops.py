@@ -239,6 +239,17 @@ def add_payment(amt: float) -> None:
     close_db(conn)
 
 
+def del_payment(amt: float) -> None:
+    conn = connect_db()
+    cursor_obj = conn.cursor()
+    row = float(cursor_obj.execute(
+        'SELECT don_received FROM costs_tracker;').fetchone()[0])
+    row -= amt
+    cursor_obj.execute('UPDATE costs_tracker SET don_received = ?', (row,))
+    conn.commit()
+    close_db(conn)
+
+
 def remove_donator(telegram_id: int) -> None:
     conn = connect_db()
     cursor_obj = conn.cursor()

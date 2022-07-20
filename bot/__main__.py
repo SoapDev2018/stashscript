@@ -432,8 +432,9 @@ def main():
         status_callback_btn, pattern=r'chan_em_\d+'))
     dispatcher.add_handler(CallbackQueryHandler(
         email_chg_btn, pattern=r'change_email_\w{2,3}_\d+'))
+    # Fixes the bug where this MessageHandler was being called in groups
     dispatcher.add_handler(MessageHandler(
-        Filters.regex(r'[a-z0-9]+@[a-z]+\.[a-z]{2,3}'), status_email_chg_msg_handler))
+        Filters.regex(r'[a-z0-9]+@[a-z]+\.[a-z]{2,3}') & Filters.chat_type.private, status_email_chg_msg_handler))
     dispatcher.add_handler(CallbackQueryHandler(
         start_invite_btn, pattern=r'cnf_[ny][eo]s?_\d+'))
     if not os.path.exists(DB_FILENAME):

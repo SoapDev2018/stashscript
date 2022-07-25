@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import os.path
 import pickle
-from typing import Tuple
+from typing import Tuple, Union
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -17,7 +17,9 @@ generic_cannot_remove_err = "Could not remove email from one or more groups or t
 
 def credentials() -> Credentials:
     SCOPES = ['https://www.googleapis.com/auth/admin.directory.group',
-              'https://www.googleapis.com/auth/admin.directory.group.member']
+              'https://www.googleapis.com/auth/admin.directory.group.member',
+              'https://www.googleapis.com/auth/drive',
+              'https://www.googleapis.com/auth/drive.readonly']
     creds = None
 
     pickle_file = 'token.pickle'
@@ -232,3 +234,56 @@ def set_lts_access(donator_email: str) -> str:
     if flag:
         return flag_msg
     return 'Success'
+
+
+def fetch_drive_name(drive_id: str) -> Tuple[str, bool]:
+    creds = credentials()
+    service = build('drive', 'v3', credentials=creds)
+    try:
+        resp = service.drives().get(driveId=drive_id).execute()
+        return resp['name'], False
+    except HttpError as e:
+        return e.error_details[0]['message'], True
+
+
+def change_drive_type(drive_id: str, drive_type: str) -> Tuple[Union[str, None], bool]:
+    creds = credentials()
+    service = build('drive', 'v3', credentials=creds)
+    if drive_type == 'LTS':
+        group_to_remove = 'script-viewers@frostscript.com'
+        group_to_add = 'script-lts-viewers@frostscript.com'
+    elif drive_type == 'Normal':
+        group_to_add = 'script-viewers@frostscript.com'
+        group_to_remove = 'script-lts-viewers@frostscript.com'
+    body = {
+        'role': 'reader',
+        'type': 'group',
+        'emailAddress': group_to_add,
+    }
+    try:
+        service.permissions().create(fileId=drive_id, body=body, sendNotificationEmail=False,
+                                     supportsAllDrives=True, useDomainAdminAccess=True).execute()
+        service_msg = None
+        error = False
+    except HttpError as e:
+        service_msg = e.error_details[0]['message']
+        error = True
+
+    response = service.permissions().list(fileId=drive_id, supportsAllDrives=True,
+                                          useDomainAdminAccess=True, fields='permissions(id, emailAddress)').execute()
+    id = None
+    for r in response['permissions']:
+        if r['emailAddress'] == group_to_remove:
+            id = r['id']
+            break
+    if id is not None:
+        try:
+            service.permissions().delete(fileId=drive_id, permissionId=id,
+                                         supportsAllDrives=True, useDomainAdminAccess=True).execute()
+            service_msg = None
+            error = False
+        except HttpError as e:
+            service_msg = e.error_details[0]['message']
+            error = True
+
+    return service_msg, error

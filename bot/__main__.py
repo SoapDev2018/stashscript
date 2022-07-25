@@ -15,7 +15,7 @@ from telegram.utils.helpers import mention_html
 from bot import (AUTH_CHATS, DB_FILENAME, DONATORS_GROUP_ID, IV_GROUP_ID,
                  STREAK_DB_FILENAME, TRANSACTIONS_DB_FILENAME, dispatcher,
                  updater)
-from bot.helpers import generic_ops, group_ops, tg_ops
+from bot.helpers import generic_ops, google_drive_ops, tg_ops
 
 from .admin import donator
 from .helpers import db_ops, streak_db_ops, trans_db_ops
@@ -25,6 +25,7 @@ from .modules.profile import profile, profile_btn
 from .modules.store import send, send_btn, cancel_trans, get_pending_trans
 from .modules.streaks import get_xp, leaderboards, reset_daily_xp
 from .admin.dbwork import dbdump
+from .admin.drive import drv_conv_handler
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -355,7 +356,7 @@ def email_chg_btn(update: Update, context: CallbackContext) -> None:
     donator_has_hw_access = donator_details[10]
     donator_has_curator_access = donator_details[11]
     context.bot.send_chat_action(chat.id, 'typing')
-    return_msgs = group_ops.change_donator_email(
+    return_msgs = google_drive_ops.change_donator_email(
         donator_old_email, context.user_data['new_donator_email'], donator_type, donator_has_hw_access, donator_has_curator_access)
     _log = f'User <code>{chat.id}</code> changed email from {donator_old_email} to {context.user_data["new_donator_email"]}'
     tg_ops.post_log(update, context, _log)
@@ -468,6 +469,7 @@ def main():
         status_trans_callback_btn, pattern=r'view_trans'))
     dispatcher.add_handler(CommandHandler('dump', dbdump, filters=Filters.chat(
         generic_ops.get_auth_chat()) | Filters.chat_type.private))
+    dispatcher.add_handler(drv_conv_handler)
     j = dispatcher.job_queue
     j.run_repeating(reset_daily_xp, interval=300, first=6)
 

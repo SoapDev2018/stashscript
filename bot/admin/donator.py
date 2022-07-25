@@ -1,10 +1,9 @@
 import re
 from datetime import datetime
-from turtle import update
 
 import pytz
 from bot import dispatcher
-from bot.helpers import db_ops, group_ops, streak_db_ops, tg_ops
+from bot.helpers import db_ops, google_drive_ops, streak_db_ops, tg_ops
 from telegram import (InlineKeyboardButton, InlineKeyboardMarkup,
                       ReplyKeyboardMarkup, ReplyKeyboardRemove, Update)
 from telegram.ext import (CallbackContext, CallbackQueryHandler,
@@ -355,7 +354,7 @@ def donator_nsfw_access_btn(update: Update, context: CallbackContext) -> None:
         query.edit_message_text('Member already has NSFW access!')
         return
     db_ops.set_nsfw_access(int(cb_donator_id))
-    add_nsfw_status = group_ops.set_nsfw_access(don_email)
+    add_nsfw_status = google_drive_ops.set_nsfw_access(don_email)
     if add_nsfw_status != 'Success':
         query.edit_message_text(f'Issue occurred ⚠️: \n{add_nsfw_status}')
         return
@@ -426,7 +425,7 @@ def donator_lts_access_btn(update: Update, context: CallbackContext) -> None:
     db_ops.set_lts_access(cb_donator_id, new_payment_method,
                           new_payment_date, new_payment_date_expiry, new_donation_amt)
     db_ops.add_payment(round(float(lts_donation_amt), 2))
-    add_lts_status = group_ops.set_lts_access(donator_details[2])
+    add_lts_status = google_drive_ops.set_lts_access(donator_details[2])
     if add_lts_status != 'Success':
         query.edit_message_text(f'Issue occurred ⚠️: \n{add_lts_status}')
         return
@@ -516,7 +515,7 @@ def _remove_donator_btn(update: Update, context: CallbackContext) -> None:
             _donator_email = donator_details[2]
             _donator_type = donator_details[5]
             db_ops.remove_donator(telegram_id)
-            flag = group_ops.remove_from_group(_donator_email, _donator_type)
+            flag = google_drive_ops.remove_from_group(_donator_email, _donator_type)
             query.edit_message_text(
                 f'Successfully removed donator <code>{str(telegram_id)}</code>', parse_mode=ParseMode.HTML)
             msg_obj = context.bot.send_message(chat.id, 'Trying to remove from googlegroup now...',
@@ -665,7 +664,7 @@ def button(update: Update, context: CallbackContext) -> None:
         if 'add_email' in staff_privileges:
             msg_obj = context.bot.send_message(
                 chat.id, f'Trying to add {donator_email} to group(s) now')
-        status = group_ops.add_to_group(donator_email, donation_amt)
+        status = google_drive_ops.add_to_group(donator_email, donation_amt)
         print(status)
         if status == 'Success':
             context.bot.edit_message_text(

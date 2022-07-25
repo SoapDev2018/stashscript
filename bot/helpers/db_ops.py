@@ -151,7 +151,7 @@ def get_global_drive_details() -> list:
     conn = connect_db()
     cursor_obj = conn.cursor()
     rows = cursor_obj.execute(
-        'SELECT drive_name, drive_type, drive_size, drive_id FROM drives_data_tracker ORDER BY drive_type DESC;').fetchall()
+        'SELECT drive_name, drive_type, drive_size, drive_id FROM drives_data_tracker ORDER BY drive_type DESC, drive_name COLLATE NOCASE ASC;').fetchall()
     close_db(conn)
     return rows
 
@@ -437,5 +437,44 @@ def del_invite_action(telegram_id: Union[int, None] = None, action: Union[str, N
     conn.close()
     return data
 
-# if __name__ == '__main__':
-#     set_last_email_change_date(411860733, 'iamfake420.s@gmail.com')
+
+def get_drive_details_from_id(drive_id: str) -> str:
+    conn = connect_db()
+    cursor_obj = conn.cursor()
+    data = cursor_obj.execute(
+        '''SELECT * FROM drives_data_tracker WHERE drive_id = ?''', (drive_id,)).fetchone()
+    conn.close()
+    return data
+
+
+def delete_drive(drive_id: str) -> None:
+    conn = connect_db()
+    cursor_obj = conn.cursor()
+    cursor_obj.execute(
+        '''DELETE FROM drives_data_tracker WHERE drive_id = ?''', (drive_id,))
+    conn.commit()
+    conn.close()
+
+
+def add_drive(drive_id: str, drive_name: str, drive_type: str) -> None:
+    conn = connect_db()
+    cursor_obj = conn.cursor()
+    cursor_obj.execute('''INSERT INTO drives_data_tracker(drive_id, drive_name, drive_type) VALUES (?, ?, ?)''',
+                       (drive_id, drive_name, drive_type))
+    conn.commit()
+    conn.close()
+
+
+def edit_drive(drive_id: str, drive_name: str = None, drive_type: str = None) -> None:
+    conn = connect_db()
+    cursor_obj = conn.cursor()
+    if drive_name is not None:
+        cursor_obj.execute(
+            '''UPDATE drives_data_tracker SET drive_name = ? WHERE drive_id = ?''', (drive_name, drive_id))
+        conn.commit()
+        conn.close()
+    if drive_type is not None:
+        cursor_obj.execute(
+            '''UPDATE drives_data_tracker SET drive_type = ? WHERE drive_id = ?''', (drive_type, drive_id))
+        conn.commit()
+        conn.close()

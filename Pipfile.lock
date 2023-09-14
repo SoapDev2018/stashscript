@@ -154,11 +154,11 @@
         },
         "google-auth-oauthlib": {
             "hashes": [
-                "sha256:95880ca704928c300f48194d1770cf5b1462835b6e49db61445a520f793fd5fb",
-                "sha256:e375064964820b47221a7e1b7ee1fd77051b6323c3f9e3e19785f78ab67ecfc5"
+                "sha256:089c6e587d36f4803ac7e0720c045c6a8b1fd1790088b8424975b90d0ee61c12",
+                "sha256:83ea8c3b0881e453790baff4448e8a6112ac8778d1de9da0b68010b843937afb"
             ],
             "index": "pypi",
-            "version": "==1.0.0"
+            "version": "==1.1.0"
         },
         "googleapis-common-protos": {
             "hashes": [

@@ -117,7 +117,7 @@
                 "sha256:f779d3ad205f108d14e99bb3859aa7dd8e9c68874617c72354d7ecaec2a054ac",
                 "sha256:f87f746ee241d30d6ed93969de31e5ffd09a2961a051e60ae6bddde9ec3583aa"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "python_full_version >= '3.7.0'",
             "version": "==3.2.0"
         },
         "google-api-core": {
@@ -134,6 +134,7 @@
                 "sha256:eaed50efc2f8a4027dcca8fd0037f4b1b03b8093efc84ce3cb6c75bfc79a7e31"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.7'",
             "version": "==2.100.0"
         },
         "google-auth": {
@@ -158,6 +159,7 @@
                 "sha256:83ea8c3b0881e453790baff4448e8a6112ac8778d1de9da0b68010b843937afb"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.6'",
             "version": "==1.1.0"
         },
         "googleapis-common-protos": {
@@ -249,6 +251,7 @@
                 "sha256:f5971a9226b701070a4bf2c38c89e5a3f0d64de8debda981d1db98583009122a"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.8'",
             "version": "==1.0.0"
         },
         "python-telegram-bot": {
@@ -257,6 +260,7 @@
                 "sha256:b4047606b8081b62bbd6aa361f7ca1efe87fa8f1881ec9d932d35844bf57a154"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.7'",
             "version": "==13.15"
         },
         "pytz": {
@@ -272,6 +276,7 @@
                 "sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.7'",
             "version": "==2.31.0"
         },
         "requests-oauthlib": {
@@ -379,11 +384,12 @@
         },
         "xlsxwriter": {
             "hashes": [
-                "sha256:29c7bf5ade4de1f0bb487882eb45d4845eebc3ff72a68b2090df94d83e10b92e",
-                "sha256:f4b1b1ba046b50aefc0b634d465bce5bf8497530bc8625e216cf30a84ed97a46"
+                "sha256:27eba7b0f9a9ba2b091d5e77f0003a327e022a5fe3e24ee95a5fe5b75784cf45",
+                "sha256:a6d95556f96d6908885523554b3a468d74a711010d0a25b63d47e9ef4ba3bb94"
             ],
             "index": "pypi",
-            "version": "==3.1.4"
+            "markers": "python_version >= '3.6'",
+            "version": "==3.1.5"
         }
     },
     "develop": {
@@ -393,6 +399,7 @@
                 "sha256:2913064abd97b3419d1cc83ea71f042cb821f87e45b9c88cad5ad3c4ea87fe0c"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.6'",
             "version": "==2.0.4"
         },
         "pycodestyle": {

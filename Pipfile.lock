@@ -179,11 +179,11 @@
         },
         "googleapis-common-protos": {
             "hashes": [
-                "sha256:69f9bbcc6acde92cab2db95ce30a70bd2b81d20b12eff3f1aabaffcbe8a93918",
-                "sha256:e73ebb404098db405ba95d1e1ae0aa91c3e15a71da031a2eeb6b2e23e7bc3708"
+                "sha256:22f1915393bb3245343f6efe87f6fe868532efc12aa26b391b15132e1279f1c0",
+                "sha256:8a64866a97f6304a7179873a465d6eee97b7a24ec6cfd78e0f575e96b821240b"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==1.60.0"
+            "version": "==1.61.0"
         },
         "httplib2": {
             "hashes": [
@@ -399,12 +399,12 @@
         },
         "xlsxwriter": {
             "hashes": [
-                "sha256:353042efb0f8551ce72baa087e98228f3394fcb380e8b96313edf1eec8d50823",
-                "sha256:8c730c4beb468696c4160aa1d6d168fb4c1a20dd972b212cd8cc1e74ddeab1b6"
+                "sha256:059d0786fbfa3055588e81e9d5acf4ace28394bf09353a31ae2cae635740fc15",
+                "sha256:2d8d1f392b3e041adf90042dd2f7b5f7468181a45e5e9a7d8376e64b374104f1"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.6'",
-            "version": "==3.1.7"
+            "version": "==3.1.8"
         }
     },
     "develop": {
@@ -419,11 +419,11 @@
         },
         "pycodestyle": {
             "hashes": [
-                "sha256:259bcc17857d8a8b3b4a2327324b79e5f020a13c16074670f9c8c8f872ea76d0",
-                "sha256:5d1013ba8dc7895b548be5afb05740ca82454fd899971563d2ef625d090326f8"
+                "sha256:41ba0e7afc9752dfb53ced5489e89f8186be00e599e712660695b7a75ff2663f",
+                "sha256:44fe31000b2d866f2e41841b18528a505fbd7fef9017b04eff4e2648a0fadc67"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==2.11.0"
+            "version": "==2.11.1"
         },
         "tomli": {
             "hashes": [
